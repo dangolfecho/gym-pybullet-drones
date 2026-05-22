@@ -17,6 +17,9 @@ DEFAULT_ACT = ActionType('one_d_rpm')
 DEFAULT_AGENTS = 2
 DEFAULT_MA = False
 
+start_pos = np.array([[0, 0, 0.5]])
+start_rpy = np.array([[0, 1.57, 1.57]])
+
 def play(model_path=DEFAULT_MODEL_PATH, multiagent=DEFAULT_MA, gui=DEFAULT_GUI):
     #### Load saved model ####
     if not os.path.isfile(model_path):
@@ -28,7 +31,9 @@ def play(model_path=DEFAULT_MODEL_PATH, multiagent=DEFAULT_MA, gui=DEFAULT_GUI):
 
     #### Create test environment ####
     if not multiagent:
-        env = HoverAviary(gui=gui, obs=DEFAULT_OBS, act=DEFAULT_ACT)
+        env = HoverAviary(gui=gui, obs=DEFAULT_OBS, act=DEFAULT_ACT,
+                          initial_xyzs=start_pos,
+                          initial_rpys=start_rpy)
     else:
         env = MultiHoverAviary(gui=gui, num_drones=DEFAULT_AGENTS, obs=DEFAULT_OBS, act=DEFAULT_ACT)
 

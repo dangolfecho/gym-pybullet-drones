@@ -45,7 +45,7 @@ DEFAULT_AGENTS = 2
 DEFAULT_MA = False
 
 start_pos = np.array([[0, 0, 0.5]])
-start_rpy = np.array([[0, 0, 1.57]])
+start_rpy = np.array([[0, 1.57, 1.57]])
 
 def run(multiagent=DEFAULT_MA, output_folder=DEFAULT_OUTPUT_FOLDER, gui=DEFAULT_GUI, plot=True, colab=DEFAULT_COLAB, record_video=DEFAULT_RECORD_VIDEO, local=True):
 

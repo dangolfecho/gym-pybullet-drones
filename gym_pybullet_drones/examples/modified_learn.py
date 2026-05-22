@@ -2,6 +2,8 @@
 
 Classes HoverAviary and MultiHoverAviary are used as learning envs for the PPO algorithm.
 
+Modified to allow changes to initial position and orientation
+
 Example
 -------
 In a terminal, run as:

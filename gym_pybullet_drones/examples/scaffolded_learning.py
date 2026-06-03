@@ -2,14 +2,14 @@
 
 Classes HoverAviary and MultiHoverAviary are used as learning envs for the PPO algorithm.
 
-Modified to allow changes to initial position and orientation
+Modified to allow changes to initial position and orientation as well as ways to automate the iteration process.
 
 Example
 -------
 In a terminal, run as:
 
-    $ python modified_learn.py --multiagent false
-    $ python modified_learn.py --multiagent true
+    $ python scaffolded_learning.py --multiagent false
+    $ python scaffolded_learning.py --multiagent true
 
 Notes
 -----
@@ -48,6 +48,8 @@ DEFAULT_MA = False
 
 start_pos = np.array([[0, 0, 0.5]])
 start_rpy = np.array([[0, 1.57, 1.57]])
+
+def modified_run(multiagent=DEFAULT_MA, output_folder=DEFAULT_OUTPUT_FOLDER, gui=DEFAULT_GUI, plot=True, colab=DEFAULT_COLAB, record_video=DEFAULT_RECORD_VIDEO, local=True):
 
 def run(multiagent=DEFAULT_MA, output_folder=DEFAULT_OUTPUT_FOLDER, gui=DEFAULT_GUI, plot=True, colab=DEFAULT_COLAB, record_video=DEFAULT_RECORD_VIDEO, local=True):
 
@@ -100,7 +102,7 @@ def run(multiagent=DEFAULT_MA, output_folder=DEFAULT_OUTPUT_FOLDER, gui=DEFAULT_
                                  eval_freq=int(1000),
                                  deterministic=True,
                                  render=False)
-    model.learn(total_timesteps=int(1e5) if local else int(1e2), # shorter training in GitHub Actions pytest
+    model.learn(total_timesteps=int(1e6) if local else int(1e2), # shorter training in GitHub Actions pytest
                 callback=eval_callback,
                 log_interval=100)
 
@@ -215,5 +217,6 @@ if __name__ == '__main__':
     parser.add_argument('--output_folder',      default=DEFAULT_OUTPUT_FOLDER, type=str,           help='Folder where to save logs (default: "results")', metavar='')
     parser.add_argument('--colab',              default=DEFAULT_COLAB,         type=bool,          help='Whether example is being run by a notebook (default: "False")', metavar='')
     ARGS = parser.parse_args()
-
+	
+	
     run(**vars(ARGS))

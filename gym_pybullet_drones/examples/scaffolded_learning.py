@@ -74,8 +74,6 @@ def modified_run(multiagent=DEFAULT_MA, output_folder=DEFAULT_OUTPUT_FOLDER, gui
 
         filename = os.path.join(output_folder,
                                 'save-'+'x'+str(config[0])+'y'+str(config[1])+'z'+str(config[2])+'r'+str(config[3])+'p'+str(config[4])+'y'+str(config[5]))
-        if not os.path.exists(filename):
-            os.makedirs(filename+'/')
 
         train_env = make_vec_env(HoverAviary,
                                  env_kwargs=dict(obs=DEFAULT_OBS,
@@ -91,10 +89,24 @@ def modified_run(multiagent=DEFAULT_MA, output_folder=DEFAULT_OUTPUT_FOLDER, gui
         print('[INFO] Action space:', train_env.action_space)
         print('[INFO] Observation space:', train_env.observation_space)
 
-        model = PPO('MlpPolicy',
-                    train_env,
-                    # tensorboard_log=filename + '/tb'/',
-                    verbose=1)
+        if not os.path.exists(filename):
+            os.makedirs(filename+'/')
+            model = PPO('MlpPolicy',
+                        train_env,
+                        # tensorboard_log=filename + '/tb'/',
+                        verbose=1)
+
+        else:
+            if use_prev_model:
+                model = PPO.load(filename+'/best_model.zip',
+                                 train_env,
+                                 verbose=1)
+            else:
+                model = PPO('MlpPolicy',
+                            train_env,
+                            # tensorboard_log=filename + '/tb'/',
+                            verbose=1)
+
 
         if DEFAULT_ACT == ActionType.ONE_D_RPM:
             target_reward = 474

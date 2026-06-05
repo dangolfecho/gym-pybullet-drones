@@ -9,8 +9,8 @@ Example
 -------
 In a terminal, run as:
 
-    $ python scaffolded_learning.py --multiagent false
-    $ python scaffolded_learning.py --multiagent true
+    $ python scaffolded_learning.py 
+    $ python scaffolded_learning.py
 
 Notes
 -----

@@ -6,6 +6,9 @@ if load_existing_model == True, then use old model
 other use a new model
 
 position has std units and rpy has radian as units
+
+python schedule_creator.py --default True - using presets
+python schedule_creator.py --default False - using user input
 """
 
 import argparse

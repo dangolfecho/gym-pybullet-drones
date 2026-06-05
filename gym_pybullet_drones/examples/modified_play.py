@@ -3,6 +3,8 @@ modified play.py to set up intial positions and roll pitch yaw based on file
 name
 
 currently for single agent case
+
+python modified_play.py --model_path <path>/
 '''
 import os
 import time

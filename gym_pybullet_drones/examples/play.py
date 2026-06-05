@@ -17,8 +17,8 @@ DEFAULT_ACT = ActionType('one_d_rpm')
 DEFAULT_AGENTS = 2
 DEFAULT_MA = False
 
-start_pos = np.array([[0, 0, 0.5]])
-start_rpy = np.array([[0, 1.57, 1.57]])
+start_pos = np.array([[0, 0, 0]])
+start_rpy = np.array([[0, 0, 0]])
 
 def play(model_path=DEFAULT_MODEL_PATH, multiagent=DEFAULT_MA, gui=DEFAULT_GUI):
     #### Load saved model ####

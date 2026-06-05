@@ -3,6 +3,7 @@
 Classes HoverAviary and MultiHoverAviary are used as learning envs for the PPO algorithm.
 
 Modified to allow changes to initial position and orientation as well as ways to automate the iteration process.
+Derived from learn.py
 
 Example
 -------
@@ -15,6 +16,9 @@ Notes
 -----
 This is a minimal working example integrating `gym-pybullet-drones` with 
 reinforcement learning library `stable-baselines3`.
+
+2. loading and saving models
+3. only single agent for now.
 
 """
 import os
@@ -49,164 +53,85 @@ DEFAULT_MA = False
 start_pos = np.array([[0, 0, 0.5]])
 start_rpy = np.array([[0, 1.57, 1.57]])
 
+def read_schedule():
+    sch_list = []
+    with open("schedule.txt", "r") as fp:
+        for line in fp:
+            parts = line.split()
+            for i in range(8):
+                parts[i] = float(parts[i])
+            sch_list.append(parts)
+    return sch_list
+
+
 def modified_run(multiagent=DEFAULT_MA, output_folder=DEFAULT_OUTPUT_FOLDER, gui=DEFAULT_GUI, plot=True, colab=DEFAULT_COLAB, record_video=DEFAULT_RECORD_VIDEO, local=True):
+    schedule = read_schedule()
+    for config in schedule:
+        start_pos = np.array([[config[0], config[1], config[2]]])
+        start_rpy = np.array([[config[3], config[4], config[5]]])
+        training_time = config[6]
+        use_prev_model = bool(config[7])
 
-def run(multiagent=DEFAULT_MA, output_folder=DEFAULT_OUTPUT_FOLDER, gui=DEFAULT_GUI, plot=True, colab=DEFAULT_COLAB, record_video=DEFAULT_RECORD_VIDEO, local=True):
+        filename = os.path.join(output_folder,
+                                'save-'+'x'+str(config[0])+'y'+str(config[1])+'z'+str(config[2])+'r'+str(config[3])+'p'+str(config[4])+'y'+str(config[5]))
+        if not os.path.exists(filename):
+            os.makedirs(filename+'/')
 
-    filename = os.path.join(output_folder, 'save-'+datetime.now().strftime("%m.%d.%Y_%H.%M.%S"))
-    if not os.path.exists(filename):
-        os.makedirs(filename+'/')
-
-    if not multiagent:
         train_env = make_vec_env(HoverAviary,
                                  env_kwargs=dict(obs=DEFAULT_OBS,
                                                  act=DEFAULT_ACT,
                                                  initial_xyzs=start_pos,
                                                  initial_rpys=start_rpy),
                                  n_envs=1,
-                                 seed=0
-                                 )
+                                 seed=0)
         eval_env = HoverAviary(obs=DEFAULT_OBS, act=DEFAULT_ACT,
                                initial_xyzs=start_pos,
                                initial_rpys=start_rpy)
-    else:
-        train_env = make_vec_env(MultiHoverAviary,
-                                 env_kwargs=dict(num_drones=DEFAULT_AGENTS, obs=DEFAULT_OBS, act=DEFAULT_ACT),
-                                 n_envs=1,
-                                 seed=0
-                                 )
-        eval_env = MultiHoverAviary(num_drones=DEFAULT_AGENTS, obs=DEFAULT_OBS, act=DEFAULT_ACT)
+        
+        print('[INFO] Action space:', train_env.action_space)
+        print('[INFO] Observation space:', train_env.observation_space)
 
-    #### Check the environment's spaces ########################
-    print('[INFO] Action space:', train_env.action_space)
-    print('[INFO] Observation space:', train_env.observation_space)
+        model = PPO('MlpPolicy',
+                    train_env,
+                    # tensorboard_log=filename + '/tb'/',
+                    verbose=1)
 
-    #### Train the model #######################################
-    model = PPO('MlpPolicy',
-                train_env,
-                # tensorboard_log=filename+'/tb/',
-                verbose=1)
+        if DEFAULT_ACT == ActionType.ONE_D_RPM:
+            target_reward = 474
 
-    #### Target cumulative rewards (problem-dependent) ##########
-    if DEFAULT_ACT == ActionType.ONE_D_RPM:
-        target_reward = 474. if not multiagent else 949.5
-    else:
-        target_reward = 467. if not multiagent else 920.
-    callback_on_best = StopTrainingOnRewardThreshold(reward_threshold=target_reward,
-                                                     verbose=1)
-    eval_callback = EvalCallback(eval_env,
-                                 callback_on_new_best=callback_on_best,
-                                 verbose=1,
-                                 best_model_save_path=filename+'/',
-                                 log_path=filename+'/',
-                                 eval_freq=int(1000),
-                                 deterministic=True,
-                                 render=False)
-    model.learn(total_timesteps=int(1e6) if local else int(1e2), # shorter training in GitHub Actions pytest
-                callback=eval_callback,
-                log_interval=100)
+        else:
+            target_reward = 467
 
-    #### Save the model ########################################
-    model.save(filename+'/final_model.zip')
-    print(filename)
+        callback_on_best = StopTrainingOnRewardThreshold(reward_threshold=target_reward,
+                                      verbose=1)
 
-    #### Print training progression ############################
-    with np.load(filename+'/evaluations.npz') as data:
-        timesteps = data['timesteps']
-        results = data['results'][:, 0] 
-        print("Data from evaluations.npz")
-        for j in range(timesteps.shape[0]):
-            print(f"{timesteps[j]},{results[j]}")
-        if local:
-            plt.plot(timesteps, results, marker='o', linestyle='-', markersize=4)
-            plt.xlabel('Training Steps')
-            plt.ylabel('Episode Reward')
-            plt.grid(True, alpha=0.6)
-            plt.show()
+        eval_callback = EvalCallback(eval_env,
+                                     callback_on_new_best=callback_on_best,
+                                     verbose=1,
+                                     best_model_save_path=filename+'/',
+                                     log_path=filename+'/',
+                                     eval_freq=int(1000),
+                                     deterministic=True,
+                                     render=False)
+        model.learn(total_timesteps=training_time if local else int(1e2),
+                    callback=eval_callback,
+                    log_interval=100)
 
-    ############################################################
-    ############################################################
-    ############################################################
-    ############################################################
-    ############################################################
+        # Saving the model
+        textfile_name = os.path.join(filename+'/epochs.txt')
+        if(os.path.isfile(textfile_name)):
+            raw_read = ''
+            with open(textfile_name, 'r') as fp:
+                raw_read = (fp.readlines())[0]
+            exis_count = float(raw_read.rstrip())
+            exis_count += training_time
+            with open(textfile_name, 'w') as fp:
+                fp.write(str(exis_count)+'\n')
+        else:
+            with open(textfile_name, 'w') as fp:
+                fp.write(str(training_time)+'\n')
 
-    # if os.path.isfile(filename+'/final_model.zip'):
-    #     path = filename+'/final_model.zip'
-    if os.path.isfile(filename+'/best_model.zip'):
-        path = filename+'/best_model.zip'
-    else:
-        print("[ERROR]: no model under the specified path", filename)
-    model = PPO.load(path)
-
-    #### Show (and record a video of) the model's performance ##
-    if not multiagent:
-        test_env = HoverAviary(gui=gui,
-                               obs=DEFAULT_OBS,
-                               act=DEFAULT_ACT,
-                               record=record_video,
-                               initial_xyzs=start_pos,
-                               initial_rpys=start_rpy)
-        test_env_nogui = HoverAviary(obs=DEFAULT_OBS, act=DEFAULT_ACT)
-    else:
-        test_env = MultiHoverAviary(gui=gui,
-                                        num_drones=DEFAULT_AGENTS,
-                                        obs=DEFAULT_OBS,
-                                        act=DEFAULT_ACT,
-                                        record=record_video)
-        test_env_nogui = MultiHoverAviary(num_drones=DEFAULT_AGENTS, obs=DEFAULT_OBS, act=DEFAULT_ACT)
-    logger = Logger(logging_freq_hz=int(test_env.CTRL_FREQ),
-                num_drones=DEFAULT_AGENTS if multiagent else 1,
-                output_folder=output_folder,
-                colab=colab
-                )
-
-    mean_reward, std_reward = evaluate_policy(model,
-                                              test_env_nogui,
-                                              n_eval_episodes=10
-                                              )
-    print("\n\n\nMean reward ", mean_reward, " +- ", std_reward, "\n\n")
-
-    obs, info = test_env.reset(seed=42, options={})
-    start = time.time()
-    for i in range((test_env.EPISODE_LEN_SEC+2)*test_env.CTRL_FREQ):
-        action, _states = model.predict(obs,
-                                        deterministic=True
-                                        )
-        obs, reward, terminated, truncated, info = test_env.step(action)
-        obs2 = obs.squeeze()
-        act2 = action.squeeze()
-        print("Obs:", obs, "\tAction", action, "\tReward:", reward, "\tTerminated:", terminated, "\tTruncated:", truncated)
-        if DEFAULT_OBS == ObservationType.KIN:
-            if not multiagent:
-                logger.log(drone=0,
-                    timestamp=i/test_env.CTRL_FREQ,
-                    state=np.hstack([obs2[0:3],
-                                        np.zeros(4),
-                                        obs2[3:15],
-                                        act2
-                                        ]),
-                    control=np.zeros(12)
-                    )
-            else:
-                for d in range(DEFAULT_AGENTS):
-                    logger.log(drone=d,
-                        timestamp=i/test_env.CTRL_FREQ,
-                        state=np.hstack([obs2[d][0:3],
-                                            np.zeros(4),
-                                            obs2[d][3:15],
-                                            act2[d]
-                                            ]),
-                        control=np.zeros(12)
-                        )
-        test_env.render()
-        print(terminated)
-        sync(i, start, test_env.CTRL_TIMESTEP)
-        if terminated:
-            obs = test_env.reset(seed=42, options={})
-    test_env.close()
-
-    if plot and DEFAULT_OBS == ObservationType.KIN:
-        logger.plot()
+        model.save(filename+'/final_model.zip')
 
 if __name__ == '__main__':
     #### Define and parse (optional) arguments for the script ##
@@ -219,4 +144,4 @@ if __name__ == '__main__':
     ARGS = parser.parse_args()
 	
 	
-    run(**vars(ARGS))
+    modified_run(**vars(ARGS))

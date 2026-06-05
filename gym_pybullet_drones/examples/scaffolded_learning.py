@@ -17,7 +17,6 @@ Notes
 This is a minimal working example integrating `gym-pybullet-drones` with 
 reinforcement learning library `stable-baselines3`.
 
-2. loading and saving models
 3. only single agent for now.
 
 """

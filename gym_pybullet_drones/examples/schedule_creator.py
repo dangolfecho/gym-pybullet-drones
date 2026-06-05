@@ -22,9 +22,6 @@ rpy_steplength = []
 pos_vars = ["x", "y", "z"]
 rpy_vars = ["roll", "pitch", "yaw"]
 
-use_prev_model = False
-training_time = 1e5
-
 DEFAULT_C = False
 def create(default=DEFAULT_C):
     if(default):
@@ -35,7 +32,7 @@ def create(default=DEFAULT_C):
         end_rpys.extend([0.1, 0.1, 0.1])
         rpy_steplength.extend([0.1, 0.1, 0.1])
         training_time = 1e5
-        use_prev_model = False
+        use_prev_model = True
     else:
         for i in range(3):
             x = float(input(f"Enter the starting {pos_vars[i]}\n"))

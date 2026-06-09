@@ -43,6 +43,7 @@ DEFAULT_GUI = True
 DEFAULT_RECORD_VIDEO = False
 DEFAULT_OUTPUT_FOLDER = 'results'
 DEFAULT_COLAB = False
+DEFAULT_SC = 'schedule.txt'
 
 DEFAULT_OBS = ObservationType('kin') # 'kin' or 'rgb'
 DEFAULT_ACT = ActionType('one_d_rpm') # 'rpm' or 'pid' or 'vel' or 'one_d_rpm' or 'one_d_pid'
@@ -52,9 +53,9 @@ DEFAULT_MA = False
 start_pos = np.array([[0, 0, 0.5]])
 start_rpy = np.array([[0, 1.57, 1.57]])
 
-def read_schedule():
+def read_schedule(path):
     sch_list = []
-    with open("schedule.txt", "r") as fp:
+    with open(path, "r") as fp:
         for line in fp:
             parts = line.split()
             for i in range(8):
@@ -62,9 +63,14 @@ def read_schedule():
             sch_list.append(parts)
     return sch_list
 
+def give_str(num):
+    if num < 0:
+        return 'm'+str(-num)
+    return str(num)
 
-def modified_run(multiagent=DEFAULT_MA, output_folder=DEFAULT_OUTPUT_FOLDER, gui=DEFAULT_GUI, plot=True, colab=DEFAULT_COLAB, record_video=DEFAULT_RECORD_VIDEO, local=True):
-    schedule = read_schedule()
+
+def modified_run(schedule_path=DEFAULT_SC, multiagent=DEFAULT_MA, output_folder=DEFAULT_OUTPUT_FOLDER, gui=DEFAULT_GUI, plot=True, colab=DEFAULT_COLAB, record_video=DEFAULT_RECORD_VIDEO, local=True):
+    schedule = read_schedule(schedule_path)
     for config in schedule:
         start_pos = np.array([[config[0], config[1], config[2]]])
         start_rpy = np.array([[config[3], config[4], config[5]]])
@@ -72,7 +78,7 @@ def modified_run(multiagent=DEFAULT_MA, output_folder=DEFAULT_OUTPUT_FOLDER, gui
         use_prev_model = bool(config[7])
 
         filename = os.path.join(output_folder,
-                                'save-'+'x'+str(config[0])+'y'+str(config[1])+'z'+str(config[2])+'r'+str(config[3])+'p'+str(config[4])+'y'+str(config[5]))
+                                'save-'+'x'+give_str(config[0])+'y'+give_str(config[1])+'z'+give_str(config[2])+'r'+give_str(config[3])+'p'+give_str(config[4])+'y'+give_str(config[5]))
 
         train_env = make_vec_env(HoverAviary,
                                  env_kwargs=dict(obs=DEFAULT_OBS,
@@ -147,6 +153,8 @@ def modified_run(multiagent=DEFAULT_MA, output_folder=DEFAULT_OUTPUT_FOLDER, gui
 if __name__ == '__main__':
     #### Define and parse (optional) arguments for the script ##
     parser = argparse.ArgumentParser(description='Single agent reinforcement learning example script')
+    parser.add_argument('--schedule_path', default=DEFAULT_SC, type=str, help='Which\
+    schedule file to use')
     parser.add_argument('--multiagent',         default=DEFAULT_MA,            type=str2bool,      help='Whether to use example LeaderFollower instead of Hover (default: False)', metavar='')
     parser.add_argument('--gui',                default=DEFAULT_GUI,           type=str2bool,      help='Whether to use PyBullet GUI (default: True)', metavar='')
     parser.add_argument('--record_video',       default=DEFAULT_RECORD_VIDEO,  type=str2bool,      help='Whether to record a video (default: False)', metavar='')

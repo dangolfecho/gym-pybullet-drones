@@ -28,8 +28,8 @@ rpy_vars = ["roll", "pitch", "yaw"]
 DEFAULT_C = False
 def create(default=DEFAULT_C):
     if(default):
-        start_pos.extend([0, 0, 0])
-        end_pos.extend([0, 0, 0])
+        start_pos.extend([0, 0, 1.0])
+        end_pos.extend([0, 0, 1.0])
         pos_steplength.extend([0.1, 0.1, 0.1])
         start_rpys.extend([-0.1, -0.1, -0.1])
         end_rpys.extend([0.1, 0.1, 0.1])

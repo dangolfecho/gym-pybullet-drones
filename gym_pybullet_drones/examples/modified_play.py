@@ -48,6 +48,7 @@ def play(model_path=DEFAULT_MODEL_PATH, multiagent=DEFAULT_MA, gui=DEFAULT_GUI):
             temp += i
     start_pos = np.array([arr[:3]])
     start_rpy = np.array([arr[3:]])
+    print(start_pos, start_rpy)
                          
     model = PPO.load(model_path)
     print(f"[INFO] Loaded model from {model_path}")

@@ -17,7 +17,6 @@ DEFAULT_PATH = '.'
 
 def get_config(filename):
     raw_config = filename.split('-')[1]
-    mode = True
     temp = ''
     arr = []
     m_flag = False

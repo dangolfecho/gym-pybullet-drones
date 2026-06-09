@@ -32,17 +32,28 @@ def play(model_path=DEFAULT_MODEL_PATH, multiagent=DEFAULT_MA, gui=DEFAULT_GUI):
         return
     #assume file name is results/save-<>/best_model.zip
     raw_config = ((model_path.split('/'))[1].split('-'))[1]
-    mode = True
     temp = ''
     arr = []
+    m_flag = False
     for j in range(1, len(raw_config)):
         i = raw_config[j]
         if i!='.' and i.isalpha():
-            arr.append(float(temp))
-            temp = ''
+            if(i == 'm'):
+                m_flag = True
+            else:
+                if(m_flag):
+                    arr.append(-1 * float(temp))
+                    temp = ''
+                    m_flag = False
+                else:
+                    arr.append(float(temp))
+                    temp = ''
         elif(j == len(raw_config)-1):
             temp += i
-            arr.append(float(temp))
+            if(m_flag):
+                arr.append(-1 * float(temp))
+            else:
+                arr.append(float(temp))
             temp = ''
         else:
             temp += i

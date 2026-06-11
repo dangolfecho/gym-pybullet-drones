@@ -101,7 +101,7 @@ def report(from_file=DEFAULT_FLAG, file_path=DEFAULT_FILE, path=DEFAULT_PATH):
         total_write_list = [HEAD_ROW]
         config_list, full_paths = get_strs(file_path, path)
         for i in range(len(full_paths)):
-            interim_list = config_list[i]
+            interim_list = config_list[i][:-2]
             dir_name = full_paths[i]
             with open((dir_name+'/epochs.txt'), 'r') as fp:
                 raw_read = (fp.readlines())[0]
@@ -114,6 +114,8 @@ def report(from_file=DEFAULT_FLAG, file_path=DEFAULT_FILE, path=DEFAULT_PATH):
             interim_list.append(max_score)
             interim_list.append(float(score/max_score))
             interim_list.append(max_score-score)
+            print(interim_list)
+            return
 
             total_write_list.append(interim_list)
         with open("report.csv", "w", newline='') as fp:

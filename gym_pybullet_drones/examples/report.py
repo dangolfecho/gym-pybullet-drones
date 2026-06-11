@@ -1,7 +1,7 @@
 '''
 Creates a report
 
-python report.py --path results/
+python report.py --from_file True --file_path <schedule_path> --path results/
 
 Creates report.csv file
 
@@ -103,10 +103,7 @@ def report(from_file=DEFAULT_FLAG, file_path=DEFAULT_FILE, path=DEFAULT_PATH):
         for i in range(len(full_paths)):
             interim_list = config_list[i]
             dir_name = full_paths[i]
-            print(interim_list, dir_name)
-            return
-            break
-            with open((i+'/epochs.txt'), 'r') as fp:
+            with open((dir_name+'/epochs.txt'), 'r') as fp:
                 raw_read = (fp.readlines())[0]
                 num_epochs = float(raw_read.rstrip())
                 interim_list.append(num_epochs)

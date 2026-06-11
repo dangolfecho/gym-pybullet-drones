@@ -9,8 +9,7 @@ Example
 -------
 In a terminal, run as:
 
-    $ python scaffolded_learning.py 
-    $ python scaffolded_learning.py
+    $ python scaffolded_learning.py --schedule_path <path>
 
 Notes
 -----

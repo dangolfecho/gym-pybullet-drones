@@ -114,8 +114,6 @@ def report(from_file=DEFAULT_FLAG, file_path=DEFAULT_FILE, path=DEFAULT_PATH):
             interim_list.append(max_score)
             interim_list.append(float(score/max_score))
             interim_list.append(max_score-score)
-            print(interim_list)
-            return
 
             total_write_list.append(interim_list)
         with open("report.csv", "w", newline='') as fp:
